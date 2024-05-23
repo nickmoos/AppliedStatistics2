@@ -136,6 +136,6 @@ def create_pareto_chart():
     plt.show()
 
 if __name__ == '__main__':
-    # create_proportional_conf_intervals()
+    create_proportional_conf_intervals()
     # create_simple_percentage_plot()
-    create_pareto_chart()
+    # create_pareto_chart()
