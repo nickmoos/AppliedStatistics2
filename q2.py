@@ -123,8 +123,53 @@ def age_groups_that_use_logitech_chart_absolute_numbers():
     plt.legend()
     plt.show()
 
+def age_groups_that_use_percentual_yes_no():
+    data = pd.read_csv(r"C:\Users\green\PycharmProjects\statisticsPython\logitech_csv\Modified_Logitech.csv")
+    data = data[data['Do you use any Logitech products?'].notna()]
+
+    # Group by age and Logitech product usage
+    grouped = data.groupby('How old are you?')['Do you use any Logitech products?'].value_counts(
+        normalize=True).unstack(fill_value=0)
+
+    # We are interested in proportions of both 'Yes' and 'No' responses
+    proportions_yes = grouped.get('Yes', 0) * 100  # Convert to percentage
+    proportions_no = grouped.get('No', 0) * 100  # Convert to percentage
+
+    # Create the bar chart
+    fig, ax = plt.subplots(figsize=(10, 6))
+    bars_yes = ax.bar(proportions_yes.index, proportions_yes, color='skyblue', label='Yes', capsize=5)
+    bars_no = ax.bar(proportions_no.index, proportions_no, bottom=proportions_yes, color='tomato', label='No', capsize=5)
+
+    ax.set_xlabel('Age Category')
+    ax.set_ylabel('Percentage Using Logitech Products (%)')
+    ax.set_title('Usage of Logitech Products by Age Category')
+
+    # Hide the y-axis
+    ax.yaxis.set_visible(False)  # Hides the y-axis labels and ticks
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    ax.spines['bottom'].set_visible(True)
+
+    # Adding percentage format to the y-axis
+    ax.yaxis.set_major_formatter(plt.matplotlib.ticker.PercentFormatter())
+
+    # Annotate each bar with the percentage value
+    for bar, label in zip(bars_yes, proportions_yes.round(1)):
+        height = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width() / 2, height / 2, f'{label}%', ha='center', va='center', color='white')
+
+    for bar, label in zip(bars_no, proportions_no.round(1)):
+        height = bar.get_height()
+        if height > 0:  # Only label non-zero percentages
+            ax.text(bar.get_x() + bar.get_width() / 2, bar.get_y() + height / 2, f'{label}%', ha='center', va='center', color='white')
+
+    ax.legend(title="Logitech Product Usage")
+    plt.show()
+
 if __name__ == '__main__':
     # create_pie()
-    create_confidence()
+    # create_confidence()
     # age_groups_that_use_logitech_chart()
     # age_groups_that_use_logitech_chart_absolute_numbers()
+    age_groups_that_use_percentual_yes_no()
