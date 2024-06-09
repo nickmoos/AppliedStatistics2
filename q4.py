@@ -12,27 +12,25 @@ def usage_duration_percentual_pie():
     wedges, texts, autotexts = ax.pie(
         usage_counts,
         labels=None,
-        autopct=lambda p: '{:.0f}'.format(p * sum(usage_counts) / 100),  # Show absolute numbers
+        autopct=lambda p: '{:.0f}'.format(p * sum(usage_counts) / 100),
         startangle=90,
         colors=plt.cm.Pastel1.colors,
-        pctdistance=0.85,  # Adjust this as needed
+        pctdistance=0.85,
     )
 
-    # Draw a legend with color patches
     ax.legend(wedges, usage_counts.index, title="Usage Duration", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
 
     ax.set_title('Duration of Using Logitech Products (Absolute Numbers)')
 
-    # Equal aspect ratio ensures that pie is drawn as a circle.
     ax.axis('equal')
 
     plt.tight_layout()
     plt.show()
 
+
 def usage_duration_percent_pie():
     usage_counts = data['How long have you been a user or owner of a Logitech product?'].value_counts()
 
-    # Create a pie chart
     fig, ax = plt.subplots()
     wedges, texts, autotexts = ax.pie(
         usage_counts,
@@ -44,13 +42,10 @@ def usage_duration_percent_pie():
         explode=[0.1 if pct < 5 else 0 for pct in usage_counts/usage_counts.sum()*100]  # Explode small slices
     )
 
-
-    # Draw a legend with color patches
     ax.legend(wedges, usage_counts.index, title="Usage Duration", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
 
     ax.set_title('Duration of using Logitech products')
 
-    # Equal aspect ratio ensures that pie is drawn as a circle.
     ax.axis('equal')
 
     plt.tight_layout()
@@ -58,31 +53,23 @@ def usage_duration_percent_pie():
 
 
 def bar_absolute_pareto():
-    # Summarize data into categories and calculate percentages
     usage_counts = data['How long have you been a user or owner of a Logitech product?'].value_counts().sort_values(
         ascending=False)
     percentages = usage_counts / usage_counts.sum() * 100
 
-    # Calculate cumulative percentage
     cumulative_percentage = np.cumsum(percentages)
 
-    # Create a figure and a bar chart for percentages
     fig, ax = plt.subplots()
-    bars = ax.bar(percentages.index, percentages, color='skyblue')
+    ax.bar(percentages.index, percentages, color='skyblue')
 
-    # Add Pareto line on the same y-axis
     ax.plot(percentages.index, cumulative_percentage, color='deeppink', marker='o', linestyle='-', linewidth=2,
             markersize=5)
 
-    # Add labels and title
     ax.set_xlabel('Usage Duration')
     ax.set_ylabel('Percentage (%)')
     ax.set_title('Usage Duration of Logitech Products with Pareto Chart (Percentages)')
-
-    # Adding grid
-    # ax.grid(True)
-
     plt.show()
+
 
 def conf_intervals():
     grouped = data['How long have you been a user or owner of a Logitech product?'].value_counts()
@@ -91,54 +78,42 @@ def conf_intervals():
     conf_ints = {label: proportion_confint(grouped[label], total_responses, alpha=0.05, method='wilson')
                  for label in grouped.index}
 
-    # Prepare data for plotting
     labels = grouped.index
     values = [proportions[label] * 100 for label in labels]
     conf_lower = [conf_ints[label][0] * 100 for label in labels]
     conf_upper = [conf_ints[label][1] * 100 for label in labels]
     errors = [(values[i] - conf_lower[i], conf_upper[i] - values[i]) for i in range(len(values))]
 
-    # Create the bar chart with error bars
     fig, ax = plt.subplots(figsize=(8, 6))
     bars = ax.bar(labels, values, yerr=np.array(errors).T, color='skyblue', capsize=5)
     ax.set_ylabel('Percentage (%)')
     ax.set_title('Duration of Using Logitech Products with Confidence Intervals')
-    ax.set_ylim(0, 100)  # Ensure there is enough space for annotations
+    ax.set_ylim(0, 100)
 
-
-    # Adding percentage format to the y-axis
     ax.yaxis.set_major_formatter(plt.matplotlib.ticker.PercentFormatter())
 
-    # Annotate bars with the exact bounds
     for bar, lower, upper in zip(bars, conf_lower, conf_upper):
         ax.text(bar.get_x() + bar.get_width() / 2, upper + 1, f'{upper:.1f}%', ha='center', va='bottom')
-        # Logic to adjust the position of the lower bound label
         if lower < 5:
-            # Move the label up and to the right
             ax.text(bar.get_x() + bar.get_width() / 2 + 0.05, lower - 0.5, f'{lower:.1f}%', ha='left', va='bottom')
         else:
             ax.text(bar.get_x() + bar.get_width() / 2, lower - 1, f'{lower:.1f}%', ha='center', va='top')
 
-    plt.tight_layout()  # Adjust layout to make room for label placement
+    plt.tight_layout()
     plt.show()
 
 
 def plot_age_vs_usage_duration():
     age_categories = ["16-20", "21-30", "41-55", "55+"]
 
-    # Group data by age and usage duration, then count sizes
     grouped = data.groupby(
         ['How old are you?', 'How long have you been a user or owner of a Logitech product?']).size().unstack(
         fill_value=0)
 
-    # Sort index based on predefined age categories
     grouped = grouped.reindex(age_categories)
 
-    # Calculate percentages of each usage duration within each age group
     grouped_percent = grouped.div(grouped.sum(axis=1), axis=0) * 100
 
-    # Ensure the columns (usage durations) are ordered by total users descending for each
-    # Sort columns based on the sum of their values
     ordered_columns = grouped.sum().sort_values(ascending=False).index
     grouped_percent = grouped_percent[ordered_columns]
 
@@ -150,13 +125,12 @@ def plot_age_vs_usage_duration():
     ax.legend(title='Usage Duration', bbox_to_anchor=(1.05, 1), loc='upper left')
 
     plt.xticks(rotation=45)
-    plt.tight_layout()  # Adjust layout to make room for labels
+    plt.tight_layout()
     plt.show()
 
 
 if __name__ == '__main__':
-    # usage_duration_percent_pie()
-    # usage_duration_absolute_pie()
+    usage_duration_percent_pie()
     bar_absolute_pareto()
-    # conf_intervals()
-    # plot_age_vs_usage_duration()
+    conf_intervals()
+    plot_age_vs_usage_duration()
